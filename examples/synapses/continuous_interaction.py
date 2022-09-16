@@ -28,8 +28,8 @@ References:
 """
 from brian2 import *
 
-I_e = 1.5*uA
-simulation_time = 100*ms
+I_e = 1.5 * uA
+simulation_time = 100 * ms
 # neuron RTM parameters
 El = -67 * mV
 EK = -100 * mV
@@ -73,15 +73,13 @@ dvm/dt = membrane_Im/C : volt
 neuron = NeuronGroup(2, eqs, method="exponential_euler")
 
 # initialize variables
-neuron.vm = [-70.0, -65.0]*mV
+neuron.vm = [-70.0, -65.0] * mV
 neuron.m = "alpham / (alpham + betam)"
 neuron.h = "alphah / (alphah + betah)"
 neuron.n = "alphan / (alphan + betan)"
-neuron.I_ext = [I_e, 0.0*uA]
+neuron.I_ext = [I_e, 0.0 * uA]
 
-S = Synapses(neuron,
-             neuron,
-             's_in_post = weight*s_pre:1 (summed)')
+S = Synapses(neuron, neuron, "s_in_post = weight*s_pre:1 (summed)")
 S.connect(i=0, j=1)
 
 # tracking variables
@@ -91,19 +89,17 @@ st_mon = StateMonitor(neuron, ["vm", "s", "s_in"], record=[0, 1])
 run(simulation_time)
 
 # plot the results
-fig, ax = plt.subplots(2, figsize=(10, 6), sharex=True,
-                       gridspec_kw={'height_ratios': (3, 1)})
+fig, ax = plt.subplots(
+    2, figsize=(10, 6), sharex=True, gridspec_kw={"height_ratios": (3, 1)}
+)
 
-ax[0].plot(st_mon.t/ms, st_mon.vm[0]/mV,
-           lw=2, c="r", alpha=0.5, label="neuron 0")
-ax[0].plot(st_mon.t/ms, st_mon.vm[1]/mV,
-           lw=2, c="b", alpha=0.5, label='neuron 1')
-ax[1].plot(st_mon.t/ms, st_mon.s[0],
-           lw=2, c="r", alpha=0.5, label='s, neuron 0')
-ax[1].plot(st_mon.t/ms, st_mon.s_in[1],
-           lw=2, c="b", alpha=0.5, label='s_in, neuron 1')
-ax[0].set(ylabel='v [mV]', xlim=(0, np.max(st_mon.t / ms)),
-          ylim=(-100, 50))
+ax[0].plot(st_mon.t / ms, st_mon.vm[0] / mV, lw=2, c="r", alpha=0.5, label="neuron 0")
+ax[0].plot(st_mon.t / ms, st_mon.vm[1] / mV, lw=2, c="b", alpha=0.5, label="neuron 1")
+ax[1].plot(st_mon.t / ms, st_mon.s[0], lw=2, c="r", alpha=0.5, label="s, neuron 0")
+ax[1].plot(
+    st_mon.t / ms, st_mon.s_in[1], lw=2, c="b", alpha=0.5, label="s_in, neuron 1"
+)
+ax[0].set(ylabel="v [mV]", xlim=(0, np.max(st_mon.t / ms)), ylim=(-100, 50))
 ax[1].set(xlabel="t [ms]", ylabel="s", ylim=(0, 1))
 
 ax[0].legend()

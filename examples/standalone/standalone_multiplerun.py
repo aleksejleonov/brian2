@@ -12,7 +12,7 @@ import pylab as plt
 import brian2 as b2
 from time import time
 
-b2.set_device('cpp_standalone')
+b2.set_device("cpp_standalone")
 
 
 def simulate(tau):
@@ -20,14 +20,14 @@ def simulate(tau):
     b2.device.reinit()
     b2.device.activate()
 
-    eqs = '''
+    eqs = """
     dv/dt = -v/tau : 1
-    '''
+    """
 
     net = b2.Network()
     P = b2.PoissonGroup(num_inputs, rates=input_rate)
-    G = b2.NeuronGroup(1, eqs, threshold='v>1', reset='v=0', method='euler')
-    S = b2.Synapses(P, G, on_pre='v += weight')
+    G = b2.NeuronGroup(1, eqs, threshold="v>1", reset="v=0", method="euler")
+    S = b2.Synapses(P, G, on_pre="v += weight")
     S.connect()
     M = b2.SpikeMonitor(G)
     net.add([P, G, S, M])
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     input_rate = 10 * b2.Hz
     weight = 0.1
     npoints = 15
-    tau_range = np.linspace(1, 15, npoints) * b2.ms    
+    tau_range = np.linspace(1, 15, npoints) * b2.ms
 
     output_rates = np.zeros(npoints)
     for ii in range(npoints):
@@ -53,7 +53,7 @@ if __name__ == "__main__":
 
     print(f"Done in {time() - start_time}")
 
-    plt.plot(tau_range/b2.ms, output_rates)
+    plt.plot(tau_range / b2.ms, output_rates)
     plt.xlabel(r"$\tau$ (ms)")
     plt.ylabel("Firing rate (sp/s)")
     plt.show()

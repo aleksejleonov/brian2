@@ -15,23 +15,23 @@ from brian2 import *
 
 # defaultclock.dt = 0.01*ms  # for a more precise picture
 N = 2000
-tau = 100*ms
-freq = 1/tau
+tau = 100 * ms
+freq = 1 / tau
 
-eqs = '''
+eqs = """
 dv/dt = (-v + a + 2*sin(2*pi*t/tau))/tau : 1
 a : 1
-'''
+"""
 
-neurons = NeuronGroup(N, eqs, threshold='v>1', reset='v=0', method='euler')
+neurons = NeuronGroup(N, eqs, threshold="v>1", reset="v=0", method="euler")
 neurons.a = linspace(2, 4, N)
 
-run(5*second, report='text')  # discard the first spikes (wait for convergence)
+run(5 * second, report="text")  # discard the first spikes (wait for convergence)
 S = SpikeMonitor(neurons)
-run(5*second, report='text')
+run(5 * second, report="text")
 
 i, t = S.it
-plot((t % tau)/tau, neurons.a[i], ',')
-xlabel('Spike phase')
-ylabel('Parameter a')
+plot((t % tau) / tau, neurons.a[i], ",")
+xlabel("Spike phase")
+ylabel("Parameter a")
 show()

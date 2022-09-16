@@ -22,49 +22,53 @@ from brian2 import *
 import time
 
 # Run settings
-start_dt = .1 * ms
-method = 'rk2'
-error = 1.e-6  # requested accuracy
+start_dt = 0.1 * ms
+method = "rk2"
+error = 1.0e-6  # requested accuracy
 
 
 def runner(method, dt, options=None):
     seed(0)
     I = 5
-    group = NeuronGroup(100, '''dv/dt = (-v + I)/tau : 1
-                                tau : second''',
-                        method=method,
-                        method_options=options,
-                        dt=dt)
-    group.run_regularly('''v = rand()
-                           tau = 0.1*ms + rand()*9.9*ms''', dt=10*ms)
+    group = NeuronGroup(
+        100,
+        """dv/dt = (-v + I)/tau : 1
+                                tau : second""",
+        method=method,
+        method_options=options,
+        dt=dt,
+    )
+    group.run_regularly(
+        """v = rand()
+                           tau = 0.1*ms + rand()*9.9*ms""",
+        dt=10 * ms,
+    )
 
-    rec_vars = ['v', 'tau']
-    if 'gsl' in method:
-        rec_vars += ['_step_count']
+    rec_vars = ["v", "tau"]
+    if "gsl" in method:
+        rec_vars += ["_step_count"]
     net = Network(group)
     net.run(0 * ms)
     mon = StateMonitor(group, rec_vars, record=True, dt=start_dt)
     net.add(mon)
     start = time.time()
     net.run(1 * second)
-    mon.add_attribute('run_time')
+    mon.add_attribute("run_time")
     mon.run_time = time.time() - start
     return mon
 
 
-lin = runner('linear', start_dt)
-method_options = {'save_step_count': True,
-                  'absolute_error': error,
-                  'max_steps': 10000}
-gsl = runner('gsl_%s' % method, start_dt, options=method_options)
+lin = runner("linear", start_dt)
+method_options = {"save_step_count": True, "absolute_error": error, "max_steps": 10000}
+gsl = runner("gsl_%s" % method, start_dt, options=method_options)
 
 print("Running with GSL integrator and variable time step:")
-print('Run time: %.3fs' % gsl.run_time)
+print("Run time: %.3fs" % gsl.run_time)
 
 # check gsl error
-assert np.max(np.abs(
-    lin.v - gsl.v)) < error, "Maximum error gsl integration too large: %f" % np.max(
-    np.abs(lin.v - gsl.v))
+assert (
+    np.max(np.abs(lin.v - gsl.v)) < error
+), "Maximum error gsl integration too large: %f" % np.max(np.abs(lin.v - gsl.v))
 print("average step count: %.1f" % np.mean(gsl._step_count))
 print("average absolute error: %g" % np.mean(np.abs(gsl.v - lin.v)))
 
@@ -76,17 +80,16 @@ avg_errors = []
 max_errors = []
 runtimes = []
 while True:
-    print('Using dt: %s' % str(dt))
+    print("Using dt: %s" % str(dt))
     brian = runner(method, dt)
-    print('\tRun time: %.3fs' % brian.run_time)
+    print("\tRun time: %.3fs" % brian.run_time)
     avg_errors.append(np.mean(np.abs(brian.v - lin.v)))
     max_errors.append(np.max(np.abs(brian.v - lin.v)))
     dts.append(dt)
     runtimes.append(brian.run_time)
     if np.max(np.abs(brian.v - lin.v)) > error:
-        print('\tError too high (%g), decreasing dt' % np.max(
-            np.abs(brian.v - lin.v)))
-        dt *= .5
+        print("\tError too high (%g), decreasing dt" % np.max(np.abs(brian.v - lin.v)))
+        dt *= 0.5
         count += 1
     else:
         break
@@ -94,27 +97,38 @@ print("Desired error level achieved:")
 print("average step count: %.2fs" % (start_dt / dt))
 print("average absolute error: %g" % np.mean(np.abs(brian.v - lin.v)))
 
-print('Run time: %.3fs' % brian.run_time)
+print("Run time: %.3fs" % brian.run_time)
 if brian.run_time > gsl.run_time:
-    print("This is %.1f times slower than the simulation with GSL's variable "
-          "time step method." % (brian.run_time / gsl.run_time))
+    print(
+        "This is %.1f times slower than the simulation with GSL's variable "
+        "time step method." % (brian.run_time / gsl.run_time)
+    )
 else:
-    print("This is %.1f times faster than the simulation with GSL's variable "
-          "time step method." % (gsl.run_time / brian.run_time))
+    print(
+        "This is %.1f times faster than the simulation with GSL's variable "
+        "time step method." % (gsl.run_time / brian.run_time)
+    )
 
 fig, (ax1, ax2) = plt.subplots(1, 2)
-ax2.axvline(1e-6, color='gray')
-for label, gsl_error, std_errors, ax in [('average absolute error', np.mean(np.abs(gsl.v - lin.v)), avg_errors, ax1),
-                                         ('maximum absolute error', np.max(np.abs(gsl.v - lin.v)), max_errors, ax2)]:
-    ax.set(xscale='log', yscale='log')
-    ax.plot([], [], 'o', color='C0', label='fixed time step')  # for the legend entry
+ax2.axvline(1e-6, color="gray")
+for label, gsl_error, std_errors, ax in [
+    ("average absolute error", np.mean(np.abs(gsl.v - lin.v)), avg_errors, ax1),
+    ("maximum absolute error", np.max(np.abs(gsl.v - lin.v)), max_errors, ax2),
+]:
+    ax.set(xscale="log", yscale="log")
+    ax.plot([], [], "o", color="C0", label="fixed time step")  # for the legend entry
     for (error, runtime, dt) in zip(std_errors, runtimes, dts):
-        ax.plot(error, runtime, 'o', color='C0')
-        ax.annotate('%s' % str(dt), xy=(error, runtime), xytext=(2.5, 5),
-                    textcoords='offset points', color='C0')
-    ax.plot(gsl_error, gsl.run_time, 'o', color='C1', label='variable time step (GSL)')
+        ax.plot(error, runtime, "o", color="C0")
+        ax.annotate(
+            "%s" % str(dt),
+            xy=(error, runtime),
+            xytext=(2.5, 5),
+            textcoords="offset points",
+            color="C0",
+        )
+    ax.plot(gsl_error, gsl.run_time, "o", color="C1", label="variable time step (GSL)")
     ax.set(xlabel=label, xlim=(10**-10, 10**1))
-ax1.set_ylabel('runtime (s)')
-ax2.legend(loc='lower left')
+ax1.set_ylabel("runtime (s)")
+ax2.legend(loc="lower left")
 
 plt.show()

@@ -32,7 +32,7 @@
         # vector code
         _idx = {{_indices}}[_i]
         _vectorisation_idx = _idx
-        
+
         {{ vector_code | autoindent }}
 
         _record_data_{{varname}}[(_new_len-1)*_num{{_indices}} + _i] = _to_record_{{varname}}

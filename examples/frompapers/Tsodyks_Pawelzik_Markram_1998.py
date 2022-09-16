@@ -30,14 +30,16 @@ def get_neuron(tau_mem, R_in):
     tau_mem -- membrane time constant
     R_in -- input resistance
     """
-    neuron = NeuronGroup(1,
-                         """
+    neuron = NeuronGroup(
+        1,
+        """
                          tau_mem : second
                          I_syn : ampere
                          R_in : ohm
                          dv/dt = -v/tau_mem + (R_in*I_syn)/tau_mem : volt
                          """,
-                         method="exact")
+        method="exact",
+    )
 
     neuron.tau_mem = tau_mem
     neuron.R_in = R_in
@@ -84,11 +86,13 @@ def get_synapses(stimulus, neuron, tau_inact, A_SE, U_SE, tau_rec, tau_facil=Non
         x += -U_SE*x
         """
 
-    synapses = Synapses(stimulus,
-                        neuron,
-                        model=synapses_eqs,
-                        on_pre=synapses_action,
-                        method="exponential_euler")
+    synapses = Synapses(
+        stimulus,
+        neuron,
+        model=synapses_eqs,
+        on_pre=synapses_action,
+        method="exponential_euler",
+    )
     synapses.connect()
 
     # start fully recovered
@@ -120,17 +124,14 @@ def get_stimulus(start, stop, frequency):
 
 parameters = {
     "A": {
-        "neuron": {"tau_mem": 40 * ms,
-                   "R_in": 100*Mohm},
+        "neuron": {"tau_mem": 40 * ms, "R_in": 100 * Mohm},
         "synapse": {
             "tau_inact": 3 * ms,
             "A_SE": 250 * pA,
             "tau_rec": 800 * ms,
-            "U_SE": 0.6, # 0.5 from publication does not match plot
+            "U_SE": 0.6,  # 0.5 from publication does not match plot
         },
-        "stimulus": {"start": 100 * ms,
-                     "stop": 1100 * ms,
-                     "frequency": 20 * Hz},
+        "stimulus": {"start": 100 * ms, "stop": 1100 * ms, "frequency": 20 * Hz},
         "simulation": {"duration": 1200 * ms},
         "plot": {
             "title": "A) D - 20 Hz",
@@ -140,8 +141,7 @@ parameters = {
         },
     },
     "B": {
-        "neuron": {"tau_mem": 60 * ms,
-                   "R_in": 1*Gohm},
+        "neuron": {"tau_mem": 60 * ms, "R_in": 1 * Gohm},
         "synapse": {
             "tau_inact": 1.5 * ms,
             "A_SE": 1540 * pA,
@@ -149,9 +149,7 @@ parameters = {
             "U_SE": 0.03,
             "tau_facil": 530 * ms,
         },
-        "stimulus": {"start": 100 * ms,
-                     "stop": 1100 * ms,
-                     "frequency": 20 * Hz},
+        "stimulus": {"start": 100 * ms, "stop": 1100 * ms, "frequency": 20 * Hz},
         "simulation": {"duration": 1200 * ms},
         "plot": {
             "title": "B) F - 20 Hz",
@@ -161,8 +159,7 @@ parameters = {
         },
     },
     "C": {
-        "neuron": {"tau_mem": 60 * ms,
-                   "R_in": 1*Gohm},
+        "neuron": {"tau_mem": 60 * ms, "R_in": 1 * Gohm},
         "synapse": {
             "tau_inact": 1.5 * ms,
             "A_SE": 1540 * pA,
@@ -170,9 +167,7 @@ parameters = {
             "U_SE": 0.03,
             "tau_facil": 530 * ms,
         },
-        "stimulus": {"start": 100 * ms,
-                     "stop": 375 * ms,
-                     "frequency": 70 * Hz},
+        "stimulus": {"start": 100 * ms, "stop": 375 * ms, "frequency": 70 * Hz},
         "simulation": {"duration": 500 * ms},
         "plot": {
             "title": "C) F - 70 Hz",

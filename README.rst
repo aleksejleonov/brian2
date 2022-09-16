@@ -37,7 +37,7 @@ Stimberg, M, Brette, R, Goodman, DFM. “Brian 2, an Intuitive and Efficient Neu
    :target: https://spack.readthedocs.io/en/latest/package_list.html#py-brian2
 
 .. image:: https://img.shields.io/aur/version/python-brian2
-   :alt: AUR version   
+   :alt: AUR version
    :target: https://aur.archlinux.org/packages/python-brian2
 
 

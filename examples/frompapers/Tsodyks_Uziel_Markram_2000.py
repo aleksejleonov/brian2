@@ -161,7 +161,8 @@ def get_synapses(name, source, target, tau_I, A, U, tau_rec, tau_facil=None):
     synapses.A = (
         truncated_normal(
             A / mV, 0.5 * abs(A / mV), [A_min / mV, A_max / mV], size=N_syn
-        ) * mV
+        )
+        * mV
     )
     assert not any(synapses.A < A_min)
     assert not any(synapses.A > A_max)
@@ -175,7 +176,8 @@ def get_synapses(name, source, target, tau_I, A, U, tau_rec, tau_facil=None):
     synapses.tau_rec = (
         truncated_normal(
             tau_rec / ms, 0.5 * tau_rec / ms, [tau_min, np.inf], size=N_syn
-        ) * ms
+        )
+        * ms
     )
     assert not any(synapses.tau_rec / ms <= tau_min)
 
@@ -183,7 +185,8 @@ def get_synapses(name, source, target, tau_I, A, U, tau_rec, tau_facil=None):
         synapses.tau_facil = (
             truncated_normal(
                 tau_facil / ms, 0.5 * tau_facil / ms, [tau_min, np.inf], size=N_syn
-            ) * ms
+            )
+            * ms
         )
         assert not any(synapses.tau_facil / ms <= tau_min)
 
@@ -255,7 +258,9 @@ fig, axes = plt.subplots(3, figsize=(6, 8), sharex=True)
 
 # raster plot
 axes[0].plot(spike_monitor_exc.t / ms, spike_monitor_exc.i, ".k", ms=1)
-axes[0].plot(spike_monitor_inh.t / ms, spike_monitor_inh.i + len(exc_neurons), ".k", ms=1)
+axes[0].plot(
+    spike_monitor_inh.t / ms, spike_monitor_inh.i + len(exc_neurons), ".k", ms=1
+)
 axes[0].set_ylabel("Neuron No.")
 axes[0].set_ylim(0, len(exc_neurons) + len(inh_neurons))
 
@@ -264,8 +269,10 @@ net_activity = np.histogram(
     np.concatenate(
         list(spike_monitor_exc.spike_trains().values())
         + list(spike_monitor_inh.spike_trains().values())
-    ) / ms,
-    bins=np.arange(burnin, duration + burnin, 1))[0] / (len(exc_neurons) + len(inh_neurons))
+    )
+    / ms,
+    bins=np.arange(burnin, duration + burnin, 1),
+)[0] / (len(exc_neurons) + len(inh_neurons))
 axes[1].plot(np.arange(0, len(net_activity)) + burnin, net_activity, "k")
 net_activity_min = 0
 net_activity_max = 0.2

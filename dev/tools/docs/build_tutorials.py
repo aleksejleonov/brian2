@@ -1,5 +1,3 @@
-
-
 import os
 import shutil
 import glob
@@ -14,8 +12,8 @@ from nbconvert.exporters.rst import RSTExporter
 from brian2.utils.stringtools import deindent, indent
 
 
-src_dir = os.path.abspath('../../../tutorials')
-target_dir = os.path.abspath('../../../docs_sphinx/resources/tutorials')
+src_dir = os.path.abspath("../../../tutorials")
+target_dir = os.path.abspath("../../../docs_sphinx/resources/tutorials")
 
 # Start from scratch to avoid left-over files due to renamed tutorials, changed
 # cell numbers, etc.
@@ -24,65 +22,68 @@ if os.path.exists(target_dir):
 os.mkdir(target_dir)
 
 tutorials = []
-for fname in sorted(glob.glob1(src_dir, '*.ipynb')):
+for fname in sorted(glob.glob1(src_dir, "*.ipynb")):
     basename = fname[:-6]
     output_ipynb_fname = os.path.join(target_dir, fname)
-    output_rst_fname = os.path.join(target_dir, basename + '.rst')
+    output_rst_fname = os.path.join(target_dir, basename + ".rst")
 
-    print('Running', fname)
-    with open(os.path.join(src_dir, fname), 'r') as f:
+    print("Running", fname)
+    with open(os.path.join(src_dir, fname), "r") as f:
         notebook = reads(f.read())
 
     # The first line of the tutorial file should give the title
-    title = notebook.cells[0]['source'].split('\n')[0].strip('# ')
+    title = notebook.cells[0]["source"].split("\n")[0].strip("# ")
     tutorials.append((basename, title))
 
     # Execute the notebook
     preprocessor = ExecutePreprocessor(timeout=None)
     preprocessor.allow_errors = True
-    notebook, _ = preprocessor.preprocess(notebook,
-                                          {'metadata': {'path': src_dir}})
+    notebook, _ = preprocessor.preprocess(notebook, {"metadata": {"path": src_dir}})
 
-    print('Saving notebook and converting to RST')
+    print("Saving notebook and converting to RST")
     exporter = NotebookExporter()
     output, _ = exporter.from_notebook_node(notebook)
-    with codecs.open(output_ipynb_fname, 'w', encoding='utf-8') as f:
+    with codecs.open(output_ipynb_fname, "w", encoding="utf-8") as f:
         f.write(output)
 
     # Insert a note about ipython notebooks with a download link
-    note = deindent('''
+    note = deindent(
+        """
     .. only:: html
 
         .. |launchbinder| image:: http://mybinder.org/badge.svg
         .. _launchbinder: https://mybinder.org/v2/gh/brian-team/brian2-binder/master?filepath=tutorials/{tutorial}.ipynb
-    
+
         .. note::
            This tutorial is a static non-editable version. You can launch an
            interactive, editable version without installing any local files
            using the Binder service (although note that at some times this
            may be slow or fail to open): |launchbinder|_
-    
+
            Alternatively, you can download a copy of the notebook file
            to use locally: :download:`{tutorial}.ipynb`
-    
+
            See the :doc:`tutorial overview page <index>` for more details.
 
-    '''.format(tutorial=basename))
-    notebook.cells.insert(1, NotebookNode(cell_type='raw', metadata={},
-                                          source=note))
+    """.format(
+            tutorial=basename
+        )
+    )
+    notebook.cells.insert(1, NotebookNode(cell_type="raw", metadata={}, source=note))
     exporter = RSTExporter()
-    output, resources = exporter.from_notebook_node(notebook,
-                                                    resources={'unique_key': basename+'_image'})
-    with codecs.open(output_rst_fname, 'w', encoding='utf-8') as f:
+    output, resources = exporter.from_notebook_node(
+        notebook, resources={"unique_key": basename + "_image"}
+    )
+    with codecs.open(output_rst_fname, "w", encoding="utf-8") as f:
         f.write(output)
 
-    for image_name, image_data in resources['outputs'].items():
-        with open(os.path.join(target_dir, image_name), 'wb') as f:
+    for image_name, image_data in resources["outputs"].items():
+        with open(os.path.join(target_dir, image_name), "wb") as f:
             f.write(image_data)
 
-print('Generating index.rst')
+print("Generating index.rst")
 
-text = '''
+text = """
 ..
     This is a generated file, do not edit directly.
     (See dev/tools/docs/build_tutorials.py)
@@ -109,32 +110,41 @@ For more information about how to use Jupyter Notebooks, see the
    :maxdepth: 1
    :titlesonly:
 
-'''
+"""
 for tutorial, _ in tutorials:
-    text += '   ' + tutorial + '\n'
-text += '''
+    text += "   " + tutorial + "\n"
+text += """
 .. only:: html
 
     Interactive notebooks and files
     -------------------------------
-'''
+"""
 for tutorial, _ in tutorials:
-    text += indent(deindent('''
+    text += indent(
+        deindent(
+            """
     .. |launchbinder{tutid}| image:: http://mybinder.org/badge.svg
     .. _launchbinder{tutid}: https://mybinder.org/v2/gh/brian-team/brian2-binder/master?filepath=tutorials/{tutorial}.ipynb
-    '''.format(tutorial=tutorial, tutid=tutorial.replace('-', ''))))
+    """.format(
+                tutorial=tutorial, tutid=tutorial.replace("-", "")
+            )
+        )
+    )
 
-text += '\n'
+text += "\n"
 for tutorial, title in tutorials:
-    text += '    * |launchbinder{tutid}|_ :download:`{title} <{tutorial}.ipynb>`\n'.format(title=title,
-                                                tutorial=tutorial, tutid=tutorial.replace('-', ''))
-text += '''
+    text += (
+        "    * |launchbinder{tutid}|_ :download:`{title} <{tutorial}.ipynb>`\n".format(
+            title=title, tutorial=tutorial, tutid=tutorial.replace("-", "")
+        )
+    )
+text += """
 
 .. _`Jupyter Notebooks`: http://jupyter-notebook-beginner-guide.readthedocs.org/en/latest/what_is_jupyter.html
 .. _`Jupyter`: http://jupyter.org/
 .. _`Jupyter Notebook documentation`: http://jupyter.readthedocs.org/
 
 .. [#] Formerly known as "IPython Notebooks".
-'''
-with open(os.path.join(target_dir, 'index.rst'), 'w') as f:
+"""
+with open(os.path.join(target_dir, "index.rst"), "w") as f:
     f.write(text)

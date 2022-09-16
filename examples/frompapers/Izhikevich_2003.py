@@ -49,7 +49,7 @@ N_exc = N[:Ne]
 N_inh = N[Ne:]
 
 spikemon = SpikeMonitor(N)
-statemon = StateMonitor(N, 'v', record=0, when='after_thresholds')
+statemon = StateMonitor(N, "v", record=0, when="after_thresholds")
 N_exc.a = 0.02
 N_exc.b = 0.2
 N_exc.c = -65 + 15 * re**2
@@ -78,26 +78,26 @@ N_inh.run_regularly("I_noise = 2*randn()", dt=1 * ms)
 
 run(tfinal)
 
-fig, (ax, ax_voltage) = plt.subplots(2, 1, sharex=True,
-                                     gridspec_kw={'height_ratios': (3, 1)})
+fig, (ax, ax_voltage) = plt.subplots(
+    2, 1, sharex=True, gridspec_kw={"height_ratios": (3, 1)}
+)
 
 ax.scatter(spikemon.t / ms, spikemon.i[:], marker="_", color="k", s=10)
 ax.set_xlim(0, tfinal / ms)
 ax.set_ylim(0, len(N))
 ax.set_ylabel("neuron number")
 ax.set_yticks(np.arange(0, len(N), 100))
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
+ax.spines["right"].set_visible(False)
+ax.spines["top"].set_visible(False)
 ax.axhline(Ne, color="k")
-ax.text(500, 900, 'inhibitory', backgroundcolor='w', color='k', ha='center')
-ax.text(500, 400, 'excitatory', backgroundcolor='w', color='k', ha='center')
+ax.text(500, 900, "inhibitory", backgroundcolor="w", color="k", ha="center")
+ax.text(500, 400, "excitatory", backgroundcolor="w", color="k", ha="center")
 
-ax_voltage.plot(statemon.t / ms, np.clip(statemon.v[0], -np.inf, 30),
-               color='k')
-ax_voltage.text(25, 0, 'v₁(t)')
+ax_voltage.plot(statemon.t / ms, np.clip(statemon.v[0], -np.inf, 30), color="k")
+ax_voltage.text(25, 0, "v₁(t)")
 ax_voltage.set_xticks(np.arange(0, tfinal / ms, 100))
-ax_voltage.spines['right'].set_visible(False)
-ax_voltage.spines['top'].set_visible(False)
+ax_voltage.spines["right"].set_visible(False)
+ax_voltage.spines["top"].set_visible(False)
 ax_voltage.set_xlabel("time, ms")
 
 plt.show()

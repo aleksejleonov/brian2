@@ -50,23 +50,28 @@ def sim(g, nu_ext_over_nu_thr, sim_time, ax_spikes, ax_rates, rate_tick_step):
 
     defaultclock.dt = 0.1 * ms
 
-    neurons = NeuronGroup(N,
-                          """
+    neurons = NeuronGroup(
+        N,
+        """
                           dv/dt = -v/tau : volt (unless refractory)
                           """,
-                          threshold="v > theta",
-                          reset="v = V_r",
-                          refractory=tau_rp,
-                          method="exact",
+        threshold="v > theta",
+        reset="v = V_r",
+        refractory=tau_rp,
+        method="exact",
     )
 
     excitatory_neurons = neurons[:N_E]
     inhibitory_neurons = neurons[N_E:]
 
-    exc_synapses = Synapses(excitatory_neurons, target=neurons, on_pre="v += J", delay=D)
+    exc_synapses = Synapses(
+        excitatory_neurons, target=neurons, on_pre="v += J", delay=D
+    )
     exc_synapses.connect(p=epsilon)
 
-    inhib_synapses = Synapses(inhibitory_neurons, target=neurons, on_pre="v += -g*J", delay=D)
+    inhib_synapses = Synapses(
+        inhibitory_neurons, target=neurons, on_pre="v += -g*J", delay=D
+    )
     inhib_synapses.connect(p=epsilon)
 
     nu_ext = nu_ext_over_nu_thr * nu_thr
@@ -80,7 +85,7 @@ def sim(g, nu_ext_over_nu_thr, sim_time, ax_spikes, ax_rates, rate_tick_step):
     # record from the first 50 excitatory neurons
     spike_monitor = SpikeMonitor(neurons[:50])
 
-    run(sim_time, report='text')
+    run(sim_time, report="text")
 
     ax_spikes.plot(spike_monitor.t / ms, spike_monitor.i, "|")
     ax_rates.plot(rate_monitor.t / ms, rate_monitor.rate / Hz)
@@ -95,7 +100,9 @@ def sim(g, nu_ext_over_nu_thr, sim_time, ax_spikes, ax_rates, rate_tick_step):
 
     ax_rates.set_yticks(
         np.arange(
-            params["rate_range"][0], params["rate_range"][1] + rate_tick_step, rate_tick_step
+            params["rate_range"][0],
+            params["rate_range"][1] + rate_tick_step,
+            rate_tick_step,
         )
     )
 

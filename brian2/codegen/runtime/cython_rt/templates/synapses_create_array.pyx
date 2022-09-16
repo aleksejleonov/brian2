@@ -22,7 +22,7 @@
         {{ vector_code | autoindent }}
         _synaptic_pre_data[_idx + _old_num_synapses] = _real_sources
         _synaptic_post_data[_idx + _old_num_synapses] = _real_targets
-    
+
     # now we need to resize all registered variables and set the total number
     # of synapses (via Python)
     _owner._resize(_new_num_synapses)

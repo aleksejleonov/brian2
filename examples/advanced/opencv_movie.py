@@ -13,27 +13,34 @@ import cv2  # Import OpenCV2
 
 from brian2 import *
 
-defaultclock.dt = 1*ms
-prefs.codegen.target = 'cython'
+defaultclock.dt = 1 * ms
+prefs.codegen.target = "cython"
 prefs.logging.std_redirection = False
-set_device('cpp_standalone', clean=True)
-filename = os.path.abspath('Megamind.avi')
+set_device("cpp_standalone", clean=True)
+filename = os.path.abspath("Megamind.avi")
 
 if not os.path.exists(filename):
-    print('Downloading the example video file')
-    response = urllib.request.urlopen('http://docs.opencv.org/2.4/_downloads/Megamind.avi')
+    print("Downloading the example video file")
+    response = urllib.request.urlopen(
+        "http://docs.opencv.org/2.4/_downloads/Megamind.avi"
+    )
     data = response.read()
-    with open(filename, 'wb') as f:
+    with open(filename, "wb") as f:
         f.write(data)
 
 video = cv2.VideoCapture(filename)
-width, height, frame_count = (int(video.get(cv2.CAP_PROP_FRAME_WIDTH)),
-                              int(video.get(cv2.CAP_PROP_FRAME_HEIGHT)),
-                              int(video.get(cv2.CAP_PROP_FRAME_COUNT)))
+width, height, frame_count = (
+    int(video.get(cv2.CAP_PROP_FRAME_WIDTH)),
+    int(video.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+    int(video.get(cv2.CAP_PROP_FRAME_COUNT)),
+)
 fps = 24
-time_between_frames = 1*second/fps
+time_between_frames = 1 * second / fps
 
-@implementation('cpp', '''
+
+@implementation(
+    "cpp",
+    """
 double* get_frame(bool new_frame)
 {
     // The following initializations will only be executed once
@@ -67,14 +74,13 @@ double video_input(const int x, const int y)
     double *frame = get_frame(x==0 && y==0);
     return frame[y*VIDEO_WIDTH + x];
 }
-'''.replace('VIDEO_FILENAME', filename),
-                libraries=['opencv_core',
-                           'opencv_highgui',
-                           'opencv_videoio'],
-                headers=['<opencv2/core/core.hpp>',
-                         '<opencv2/highgui/highgui.hpp>'],
-                define_macros=[('VIDEO_WIDTH', width),
-                               ('VIDEO_HEIGHT', height)])
+""".replace(
+        "VIDEO_FILENAME", filename
+    ),
+    libraries=["opencv_core", "opencv_highgui", "opencv_videoio"],
+    headers=["<opencv2/core/core.hpp>", "<opencv2/highgui/highgui.hpp>"],
+    define_macros=[("VIDEO_WIDTH", width), ("VIDEO_HEIGHT", height)],
+)
 @check_units(x=1, y=1, result=1)
 def video_input(x, y):
     # we assume this will only be called in the custom operation (and not for
@@ -82,28 +88,31 @@ def video_input(x, y):
     # but we can directly return the full result
     _, frame = video.read()
     grayscale = frame.mean(axis=2)
-    grayscale /= 128.  # scale everything between 0 and 2
+    grayscale /= 128.0  # scale everything between 0 and 2
     return grayscale.ravel() - grayscale.ravel().mean()
 
 
 N = width * height
-tau, tau_th = 10*ms, time_between_frames
-G = NeuronGroup(N, '''dv/dt = (-v + I)/tau : 1
+tau, tau_th = 10 * ms, time_between_frames
+G = NeuronGroup(
+    N,
+    """dv/dt = (-v + I)/tau : 1
                       dv_th/dt = -v_th/tau_th : 1
                       row : integer (constant)
                       column : integer (constant)
-                      I : 1 # input current''',
-                threshold='v>v_th', reset='v=0; v_th = 3*v_th + 1.0',
-                method='exact')
+                      I : 1 # input current""",
+    threshold="v>v_th",
+    reset="v=0; v_th = 3*v_th + 1.0",
+    method="exact",
+)
 G.v_th = 1
-G.row = 'i//width'
-G.column = 'i%width'
+G.row = "i//width"
+G.column = "i%width"
 
-G.run_regularly('I = video_input(column, row)',
-                dt=time_between_frames)
+G.run_regularly("I = video_input(column, row)", dt=time_between_frames)
 mon = SpikeMonitor(G)
-runtime = frame_count*time_between_frames
-run(runtime, report='text')
+runtime = frame_count * time_between_frames
+run(runtime, report="text")
 
 # Avoid going through the whole Brian2 indexing machinery too much
 i, t, row, column = mon.i[:], mon.t[:], G.row[:], G.column[:]
@@ -111,26 +120,34 @@ i, t, row, column = mon.i[:], mon.t[:], G.row[:], G.column[:]
 import matplotlib.animation as animation
 
 # TODO: Use overlapping windows
-stepsize = 100*ms
+stepsize = 100 * ms
+
+
 def next_spikes():
     step = next_spikes.step
-    if step*stepsize > runtime:
-        next_spikes.step=0
+    if step * stepsize > runtime:
+        next_spikes.step = 0
         raise StopIteration()
-    spikes = i[(t>=step*stepsize) & (t<(step+1)*stepsize)]
+    spikes = i[(t >= step * stepsize) & (t < (step + 1) * stepsize)]
     next_spikes.step += 1
     yield column[spikes], row[spikes]
+
+
 next_spikes.step = 0
 
 fig, ax = plt.subplots()
-dots, = ax.plot([], [], 'k.', markersize=2, alpha=.25)
+(dots,) = ax.plot([], [], "k.", markersize=2, alpha=0.25)
 ax.set_xlim(0, width)
 ax.set_ylim(0, height)
 ax.invert_yaxis()
+
+
 def run(data):
     x, y = data
     dots.set_data(x, y)
 
-ani = animation.FuncAnimation(fig, run, next_spikes, blit=False, repeat=True,
-                              repeat_delay=1000)
+
+ani = animation.FuncAnimation(
+    fig, run, next_spikes, blit=False, repeat=True, repeat_delay=1000
+)
 plt.show()

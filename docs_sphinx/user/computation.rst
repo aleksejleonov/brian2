@@ -199,7 +199,7 @@ execution of code. If instead they are initialized with concrete values, they ca
 in standalone mode::
 
     neurons = NeuronGroup(10, 'v : volt')
-    neurons.v = -70*mV 
+    neurons.v = -70*mV
     print(np.mean(neurons.v))  # works in standalone
     synapses = Synapses(neurons, neurons, 'w : 1')
     synapses.connect(i=[0, 2, 4, 6, 8], j=[1, 3, 5, 7, 9])

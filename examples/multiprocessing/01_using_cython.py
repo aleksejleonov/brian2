@@ -19,19 +19,19 @@ from brian2 import *
 
 def run_sim(tau):
     pid = os.getpid()
-    print(f'RUNNING {pid}')
-    G = NeuronGroup(1, 'dv/dt = -v/tau : 1', method='exact')
+    print(f"RUNNING {pid}")
+    G = NeuronGroup(1, "dv/dt = -v/tau : 1", method="exact")
     G.v = 1
-    mon = StateMonitor(G, 'v', record=0)
-    run(100*ms)
-    print(f'FINISHED {pid}')
-    return mon.t/ms, mon.v[0]
+    mon = StateMonitor(G, "v", record=0)
+    run(100 * ms)
+    print(f"FINISHED {pid}")
+    return mon.t / ms, mon.v[0]
 
 
 if __name__ == "__main__":
     num_proc = 4
 
-    tau_values = np.arange(10)*ms + 5*ms
+    tau_values = np.arange(10) * ms + 5 * ms
     with multiprocessing.Pool(num_proc) as p:
         results = p.map(run_sim, tau_values)
 

@@ -5,7 +5,7 @@
 {% block maincode %}
 
     cdef size_t _num_spikes = {{_spikespace}}[_num{{_spikespace}}-1]
-    
+
     # For subgroups, we do not want to record all spikes
     # We assume that spikes are ordered
     cdef int _start_idx = -1
@@ -26,7 +26,7 @@
     if _end_idx == -1:
         _end_idx =_num_spikes
     _num_spikes = _end_idx - _start_idx
-    
+
     # Calculate the new length for the arrays
     cdef size_t _new_len = {{_dynamic_t}}.shape[0] + 1
 

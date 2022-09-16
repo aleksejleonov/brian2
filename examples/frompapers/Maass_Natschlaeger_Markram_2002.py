@@ -205,7 +205,9 @@ def get_synapses(name, source, target, C, l, tau_I, A, U, D, F, delay):
     dy/dt = -y/tau_I   : 1 (clock-driven) # active
     z = 1 - x - y      : 1                # inactive
     I_syn_{}_post = A*y : ampere (summed)
-    """.format(name)
+    """.format(
+        name
+    )
 
     if F:
         synapses_eqs += """
@@ -290,7 +292,8 @@ def sim(net, spike_times):
 
     return liquid_states
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     neurons = get_neurons()
 
     N_exc = int(0.8 * len(neurons))
@@ -364,19 +367,13 @@ if __name__ == '__main__':
     spike_monitor_stimulus = SpikeMonitor(stimulus)
 
     static_synapses_exc = Synapses(
-        stimulus,
-        exc_neurons,
-        "A : ampere (shared, constant)",
-        on_pre="I_stimulus += A"
+        stimulus, exc_neurons, "A : ampere (shared, constant)", on_pre="I_stimulus += A"
     )
     static_synapses_exc.connect(p=1)
     static_synapses_exc.A = 18 * nA
 
     static_synapses_inh = Synapses(
-        stimulus,
-        inh_neurons,
-        "A : ampere (shared, constant)",
-        on_pre="I_stimulus += A"
+        stimulus, inh_neurons, "A : ampere (shared, constant)", on_pre="I_stimulus += A"
     )
     static_synapses_inh.connect(p=1)
     static_synapses_inh.A = 9 * nA
@@ -411,8 +408,7 @@ if __name__ == '__main__':
     ]
 
     def map_sim(spike_times):
-        """Wrapper to sim for multiprocessing
-        """
+        """Wrapper to sim for multiprocessing"""
         return sim(net, spike_times)
 
     result = defaultdict(list)
@@ -437,7 +433,11 @@ if __name__ == '__main__':
         eds = np.array(eds)
 
         ax.plot(
-            TS / 1000, np.mean(eds, axis=0), label=f"d(u,v)={d}", linestyle=ls, color="k"
+            TS / 1000,
+            np.mean(eds, axis=0),
+            label=f"d(u,v)={d}",
+            linestyle=ls,
+            color="k",
         )
 
     ax.set_xlabel("time [sec]")

@@ -35,31 +35,37 @@ Notes
 """
 
 from brian2 import *
-from brian2.units.constants import (zero_celsius, faraday_constant as F,
-                                    gas_constant as R)
+from brian2.units.constants import (
+    zero_celsius,
+    faraday_constant as F,
+    gas_constant as R,
+)
 
-defaultclock.dt = 0.01*ms
+defaultclock.dt = 0.01 * ms
 
-VT = -52*mV
-El = -76.5*mV  # from code, text says: -69.85*mV
+VT = -52 * mV
+El = -76.5 * mV  # from code, text says: -69.85*mV
 
-E_Na = 50*mV
-E_K = -100*mV
+E_Na = 50 * mV
+E_K = -100 * mV
 C_d = 7.954  # dendritic correction factor
 
-T = 34*kelvin + zero_celsius # 34 degC (current-clamp experiments)
-tadj_HH = 3.0**((34-36)/10.0)  # temperature adjustment for Na & K (original recordings at 36 degC)
-tadj_m_T = 2.5**((34-24)/10.0)
-tadj_h_T = 2.5**((34-24)/10.0)
+T = 34 * kelvin + zero_celsius  # 34 degC (current-clamp experiments)
+tadj_HH = 3.0 ** (
+    (34 - 36) / 10.0
+)  # temperature adjustment for Na & K (original recordings at 36 degC)
+tadj_m_T = 2.5 ** ((34 - 24) / 10.0)
+tadj_h_T = 2.5 ** ((34 - 24) / 10.0)
 
-shift_I_T = -1*mV
+shift_I_T = -1 * mV
 
-gamma = F/(R*T)  # R=gas constant, F=Faraday constant
+gamma = F / (R * T)  # R=gas constant, F=Faraday constant
 Z_Ca = 2  # Valence of Calcium ions
-Ca_i = 240*nM  # intracellular Calcium concentration
-Ca_o = 2*mM  # extracellular Calcium concentration
+Ca_i = 240 * nM  # intracellular Calcium concentration
+Ca_o = 2 * mM  # extracellular Calcium concentration
 
-eqs = Equations('''
+eqs = Equations(
+    """
 Im = gl*(El-v) - I_Na - I_K - I_T: amp/meter**2
 I_inj : amp (point current)
 gl : siemens/meter**2
@@ -88,34 +94,40 @@ h_T_inf = 1/(1 + exp((v/mV + 80)/4)) : 1
 tau_m_T = (0.612 + 1.0/(exp(-(v/mV + 131)/16.7) + exp((v/mV + 15.8)/18.2))) * ms / tadj_m_T: second
 tau_h_T = (int(v<-81*mV) * exp((v/mV + 466)/66.6) +
            int(v>=-81*mV) * (28 + exp(-(v/mV + 21)/10.5))) * ms / tadj_h_T: second
-''')
+"""
+)
 
 # Simplified three-compartment morphology
-morpho = Cylinder(x=[0, 38.42]*um, diameter=26*um)
-morpho.dend = Cylinder(x=[0, 12.49]*um, diameter=10.28*um)
-morpho.dend.distal = Cylinder(x=[0, 84.67]*um, diameter=8.5*um)
-neuron = SpatialNeuron(morpho, eqs, Cm=0.88*uF/cm**2, Ri=173*ohm*cm,
-                       method='exponential_euler')
+morpho = Cylinder(x=[0, 38.42] * um, diameter=26 * um)
+morpho.dend = Cylinder(x=[0, 12.49] * um, diameter=10.28 * um)
+morpho.dend.distal = Cylinder(x=[0, 84.67] * um, diameter=8.5 * um)
+neuron = SpatialNeuron(
+    morpho, eqs, Cm=0.88 * uF / cm**2, Ri=173 * ohm * cm, method="exponential_euler"
+)
 
-neuron.v = -74*mV
+neuron.v = -74 * mV
 # Only the soma has Na/K channels
-neuron.main.g_Na = 100*msiemens/cm**2
-neuron.main.g_K = 100*msiemens/cm**2
+neuron.main.g_Na = 100 * msiemens / cm**2
+neuron.main.g_K = 100 * msiemens / cm**2
 # Apply the correction factor to the dendrites
 
 neuron.dend.Cm *= C_d
-neuron.m_T = 'm_T_inf'
-neuron.h_T = 'h_T_inf'
+neuron.m_T = "m_T_inf"
+neuron.h_T = "h_T_inf"
 
-mon = StateMonitor(neuron, ['v'], record=True)
+mon = StateMonitor(neuron, ["v"], record=True)
 
-store('initial state')
+store("initial state")
 
 
-def do_experiment(currents, somatic_density, dendritic_density,
-                  dendritic_conductance=0.0379*msiemens/cm**2,
-                  HH_currents=True):
-    restore('initial state')
+def do_experiment(
+    currents,
+    somatic_density,
+    dendritic_density,
+    dendritic_conductance=0.0379 * msiemens / cm**2,
+    HH_currents=True,
+):
+    restore("initial state")
     voltages = []
     neuron.P_Ca = somatic_density
     neuron.dend.distal.P_Ca = dendritic_density * C_d
@@ -124,89 +136,126 @@ def do_experiment(currents, somatic_density, dendritic_density,
     neuron.dend.gl = dendritic_conductance * C_d
     if not HH_currents:
         # Shut off spiking (for Figures 12B and 12C)
-        neuron.g_Na = 0*msiemens/cm**2
-        neuron.g_K = 0*msiemens/cm**2
-    run(180*ms)
-    store('before current')
+        neuron.g_Na = 0 * msiemens / cm**2
+        neuron.g_K = 0 * msiemens / cm**2
+    run(180 * ms)
+    store("before current")
     for current in currents:
-        restore('before current')
+        restore("before current")
         neuron.main.I_inj = current
-        print('.', end='')
-        run(320*ms)
+        print(".", end="")
+        run(320 * ms)
         voltages.append(mon[morpho].v[:])  # somatic voltage
     return voltages
 
 
 ## Run the various variants of the model to reproduce Figure 12
-mpl.rcParams['lines.markersize'] = 3.0
+mpl.rcParams["lines.markersize"] = 3.0
 fig, axes = plt.subplots(2, 2)
-print('Running experiments for Figure A1 ', end='')
-voltages = do_experiment([50, 75]*pA, somatic_density=1.7e-5*cm/second,
-                         dendritic_density=1.7e-5*cm/second)
-print(' done.')
-cut_off = 100*ms  # Do not display first part of simulation
-axes[0, 0].plot((mon.t - cut_off) / ms, voltages[0] / mV, color='gray')
-axes[0, 0].plot((mon.t - cut_off) / ms, voltages[1] / mV, color='black')
-axes[0, 0].set(xlim=(0, 400), ylim=(-80, 40), xticks=[],
-               title='A1: Uniform T-current density', ylabel='Voltage (mV)')
-axes[0, 0].spines['right'].set_visible(False)
-axes[0, 0].spines['top'].set_visible(False)
-axes[0, 0].spines['bottom'].set_visible(False)
+print("Running experiments for Figure A1 ", end="")
+voltages = do_experiment(
+    [50, 75] * pA,
+    somatic_density=1.7e-5 * cm / second,
+    dendritic_density=1.7e-5 * cm / second,
+)
+print(" done.")
+cut_off = 100 * ms  # Do not display first part of simulation
+axes[0, 0].plot((mon.t - cut_off) / ms, voltages[0] / mV, color="gray")
+axes[0, 0].plot((mon.t - cut_off) / ms, voltages[1] / mV, color="black")
+axes[0, 0].set(
+    xlim=(0, 400),
+    ylim=(-80, 40),
+    xticks=[],
+    title="A1: Uniform T-current density",
+    ylabel="Voltage (mV)",
+)
+axes[0, 0].spines["right"].set_visible(False)
+axes[0, 0].spines["top"].set_visible(False)
+axes[0, 0].spines["bottom"].set_visible(False)
 
-print('Running experiments for Figure A2 ', end='')
-voltages = do_experiment([50, 75]*pA, somatic_density=1.7e-5*cm/second,
-                         dendritic_density=9.5e-5*cm/second)
-print(' done.')
-cut_off = 100*ms  # Do not display first part of simulation
-axes[1, 0].plot((mon.t - cut_off) / ms, voltages[0] / mV, color='gray')
-axes[1, 0].plot((mon.t - cut_off) / ms, voltages[1] / mV, color='black')
-axes[1, 0].set(xlim=(0, 400), ylim=(-80, 40),
-               title='A2: High T-current density in dendrites',
-               xlabel='Time (ms)', ylabel='Voltage (mV)')
-axes[1, 0].spines['right'].set_visible(False)
-axes[1, 0].spines['top'].set_visible(False)
+print("Running experiments for Figure A2 ", end="")
+voltages = do_experiment(
+    [50, 75] * pA,
+    somatic_density=1.7e-5 * cm / second,
+    dendritic_density=9.5e-5 * cm / second,
+)
+print(" done.")
+cut_off = 100 * ms  # Do not display first part of simulation
+axes[1, 0].plot((mon.t - cut_off) / ms, voltages[0] / mV, color="gray")
+axes[1, 0].plot((mon.t - cut_off) / ms, voltages[1] / mV, color="black")
+axes[1, 0].set(
+    xlim=(0, 400),
+    ylim=(-80, 40),
+    title="A2: High T-current density in dendrites",
+    xlabel="Time (ms)",
+    ylabel="Voltage (mV)",
+)
+axes[1, 0].spines["right"].set_visible(False)
+axes[1, 0].spines["top"].set_visible(False)
 
-print('Running experiments for Figure B ', end='')
-currents = np.linspace(0, 200, 41)*pA
-voltages_somatic = do_experiment(currents, somatic_density=56.36e-5*cm/second,
-                                 dendritic_density=0*cm/second,
-                                 HH_currents=False)
-voltages_somatic_dendritic = do_experiment(currents, somatic_density=1.7e-5*cm/second,
-                                           dendritic_density=9.5e-5*cm/second,
-                                           HH_currents=False)
-print(' done.')
+print("Running experiments for Figure B ", end="")
+currents = np.linspace(0, 200, 41) * pA
+voltages_somatic = do_experiment(
+    currents,
+    somatic_density=56.36e-5 * cm / second,
+    dendritic_density=0 * cm / second,
+    HH_currents=False,
+)
+voltages_somatic_dendritic = do_experiment(
+    currents,
+    somatic_density=1.7e-5 * cm / second,
+    dendritic_density=9.5e-5 * cm / second,
+    HH_currents=False,
+)
+print(" done.")
 maxima_somatic = Quantity(voltages_somatic).max(axis=1)
 maxima_somatic_dendritic = Quantity(voltages_somatic_dendritic).max(axis=1)
 axes[0, 1].yaxis.tick_right()
-axes[0, 1].plot(currents/pA, maxima_somatic/mV,
-                'o-', color='black', label='Somatic only')
-axes[0, 1].plot(currents/pA, maxima_somatic_dendritic/mV,
-                's-', color='black', label='Somatic & dendritic')
-axes[0, 1].set(xlabel='Injected current (pA)', ylabel='Peak LTS (mV)',
-               ylim=(-80, 0))
-axes[0, 1].legend(loc='best', frameon=False)
+axes[0, 1].plot(
+    currents / pA, maxima_somatic / mV, "o-", color="black", label="Somatic only"
+)
+axes[0, 1].plot(
+    currents / pA,
+    maxima_somatic_dendritic / mV,
+    "s-",
+    color="black",
+    label="Somatic & dendritic",
+)
+axes[0, 1].set(xlabel="Injected current (pA)", ylabel="Peak LTS (mV)", ylim=(-80, 0))
+axes[0, 1].legend(loc="best", frameon=False)
 
-print('Running experiments for Figure C ', end='')
-currents = np.linspace(200, 400, 41)*pA
-voltages_somatic = do_experiment(currents, somatic_density=56.36e-5*cm/second,
-                                 dendritic_density=0*cm/second,
-                                 dendritic_conductance=0.15*msiemens/cm**2,
-                                 HH_currents=False)
-voltages_somatic_dendritic = do_experiment(currents, somatic_density=1.7e-5*cm/second,
-                                           dendritic_density=9.5e-5*cm/second,
-                                           dendritic_conductance=0.15*msiemens/cm**2,
-                                           HH_currents=False)
-print(' done.')
+print("Running experiments for Figure C ", end="")
+currents = np.linspace(200, 400, 41) * pA
+voltages_somatic = do_experiment(
+    currents,
+    somatic_density=56.36e-5 * cm / second,
+    dendritic_density=0 * cm / second,
+    dendritic_conductance=0.15 * msiemens / cm**2,
+    HH_currents=False,
+)
+voltages_somatic_dendritic = do_experiment(
+    currents,
+    somatic_density=1.7e-5 * cm / second,
+    dendritic_density=9.5e-5 * cm / second,
+    dendritic_conductance=0.15 * msiemens / cm**2,
+    HH_currents=False,
+)
+print(" done.")
 maxima_somatic = Quantity(voltages_somatic).max(axis=1)
 maxima_somatic_dendritic = Quantity(voltages_somatic_dendritic).max(axis=1)
 axes[1, 1].yaxis.tick_right()
-axes[1, 1].plot(currents/pA, maxima_somatic/mV,
-                'o-', color='black', label='Somatic only')
-axes[1, 1].plot(currents/pA, maxima_somatic_dendritic/mV,
-                's-', color='black', label='Somatic & dendritic')
-axes[1, 1].set(xlabel='Injected current (pA)', ylabel='Peak LTS (mV)',
-               ylim=(-80, 0))
-axes[1, 1].legend(loc='best', frameon=False)
+axes[1, 1].plot(
+    currents / pA, maxima_somatic / mV, "o-", color="black", label="Somatic only"
+)
+axes[1, 1].plot(
+    currents / pA,
+    maxima_somatic_dendritic / mV,
+    "s-",
+    color="black",
+    label="Somatic & dendritic",
+)
+axes[1, 1].set(xlabel="Injected current (pA)", ylabel="Peak LTS (mV)", ylim=(-80, 0))
+axes[1, 1].legend(loc="best", frameon=False)
 
 plt.tight_layout()
 plt.show()

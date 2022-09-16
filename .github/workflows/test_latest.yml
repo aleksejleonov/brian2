@@ -18,7 +18,7 @@ jobs:
         uses: mstimberg/github-calc-nep29@v0.1.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-  
+
   testing:
     needs: [get_python_versions]
     name: "Python ${{ matrix.python-version }} on ${{ matrix.os }} (standalone: ${{ matrix.standalone }}, 32bit: ${{ matrix.float_dtype_32 }})"
@@ -66,4 +66,3 @@ jobs:
           AGENT_OS: ${{runner.os}}
           STANDALONE: ${{ matrix.standalone }}
           FLOAT_DTYPE_32: ${{ matrix.float_dtype_32 }}
-

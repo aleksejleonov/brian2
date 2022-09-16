@@ -28,7 +28,7 @@ N = NeuronGroup(
     sigma : 1
     dy/dt = -y/tau + sqrt(2*sigma**2/tau)*xi : 1
     """,
-    method="euler"
+    method="euler",
 )
 
 N.tau = np.array([1, 0.1]) * second

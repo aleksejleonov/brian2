@@ -1,4 +1,3 @@
-# coding=utf-8
 """
 Show the improved numerical accuracy when using the `exprel` function in rate equations.
 
@@ -18,23 +17,31 @@ model with `exprel`.
 from brian2 import *
 
 # Dummy group to evaluate the rate equation at various points
-eqs = '''v : volt
+eqs = """v : volt
          # opening rate from the HH model
          alpha_simple = 0.32*(mV**-1)*(-50*mV-v)/
                         (exp((-50*mV-v)/(4*mV))-1.)/ms : Hz
-         alpha_improved = 0.32*(mV**-1)*4*mV/exprel((-50*mV-v)/(4*mV))/ms : Hz'''
+         alpha_improved = 0.32*(mV**-1)*4*mV/exprel((-50*mV-v)/(4*mV))/ms : Hz"""
 neuron = NeuronGroup(1000, eqs)
 
 # Use voltage values around the problematic point
-neuron.v = np.linspace(-50 - .5e-6, -50 + .5e-6, len(neuron))*mV
+neuron.v = np.linspace(-50 - 0.5e-6, -50 + 0.5e-6, len(neuron)) * mV
 
 fig, ax = plt.subplots()
-ax.plot((neuron.v + 50*mV)/nvolt, neuron.alpha_simple,
-         '.', label=r'$\alpha_\mathrm{simple}$')
-ax.plot((neuron.v + 50*mV)/nvolt, neuron.alpha_improved,
-         'k', label=r'$\alpha_\mathrm{improved}$')
+ax.plot(
+    (neuron.v + 50 * mV) / nvolt,
+    neuron.alpha_simple,
+    ".",
+    label=r"$\alpha_\mathrm{simple}$",
+)
+ax.plot(
+    (neuron.v + 50 * mV) / nvolt,
+    neuron.alpha_improved,
+    "k",
+    label=r"$\alpha_\mathrm{improved}$",
+)
 ax.legend()
-ax.set(xlabel='$v$ relative to -50mV (nV)', ylabel=r'$\alpha$ (Hz)')
+ax.set(xlabel="$v$ relative to -50mV (nV)", ylabel=r"$\alpha$ (Hz)")
 ax.ticklabel_format(useOffset=False)
 plt.tight_layout()
 plt.show()
