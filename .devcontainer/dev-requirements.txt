@@ -4,6 +4,6 @@ matplotlib >= 2.0
 jupyterlab
 ipympl
 pre-commit == 2.20.*
-black == 22.10.0
+black == 24.3.0
 isort == 5.10.1
 pyupgrade == 3.2.3
